@@ -359,6 +359,43 @@ test("a throwing onChange callback cannot break the refresh", async () => {
 	assert.equal(state.phase, "ready");
 });
 
+test("parseBalance accepts signed balances and keeps the sign", () => {
+	const signed = {
+		is_available: true,
+		balance_infos: [{ currency: "CNY", total_balance: "1.51", granted_balance: "1.74", topped_up_balance: "-0.23" }],
+	};
+	assert.deepEqual(parseBalance(signed, NOW).infos[0], {
+		currency: "CNY", totalBalance: "1.51", grantedBalance: "1.74", toppedUpBalance: "-0.23",
+	});
+	const negativeTotal = {
+		is_available: false,
+		balance_infos: [{ currency: "USD", total_balance: "-1.50", granted_balance: 0, topped_up_balance: -1.5 }],
+	};
+	assert.deepEqual(parseBalance(negativeTotal, NOW).infos[0], {
+		currency: "USD", totalBalance: "-1.50", grantedBalance: "0", toppedUpBalance: "-1.5",
+	});
+	for (const bad of ["--1.00", "1e5", "- 1.00", "1.00 ", "-1.2.3", "-", "−1"]) {
+		assert.throws(() => parseBalance({ is_available: true, balance_infos: [{ currency: "CNY", total_balance: bad, granted_balance: "0", topped_up_balance: "0" }] }, NOW), bad);
+	}
+	assert.throws(() => parseBalance({ is_available: true, balance_infos: [{ currency: "CNY", total_balance: Number.NEGATIVE_INFINITY, granted_balance: "0", topped_up_balance: "0" }] }, NOW));
+});
+
+const SIGNED_PAYLOAD = {
+	is_available: true,
+	balance_infos: [{ currency: "CNY", total_balance: "1.51", granted_balance: "1.74", topped_up_balance: "-0.23" }],
+};
+
+test("a real signed balance response is ready instead of a data error", async () => {
+	const h = harness({ respond: () => Promise.resolve(jsonResponse(SIGNED_PAYLOAD)) });
+	await h.controller.refresh(true);
+	const state = h.controller.getState();
+	assert.equal(state.phase, "ready");
+	assert.equal(state.error, null);
+	assert.equal(statusLine(state, h.now).text, "🐳 DeepSeek 余额：¥1.51");
+	assert.match(detailLines(state, h.now).join("\n"), /充值余额\s+-0\.23/);
+	assert.match(summaryLine(state).text, /充值 -0\.23/);
+});
+
 test("parseBalance rejects unknown fields instead of rendering raw payloads", () => {
 	assert.throws(() => parseBalance(null, NOW));
 	assert.throws(() => parseBalance({ balance_infos: [] }, NOW));

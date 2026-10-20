@@ -3,6 +3,13 @@
 All notable changes to this project are documented in this file.
 Versions follow [Semantic Versioning](https://semver.org/); dates are release dates.
 
+## [0.1.4] - 2026-10-21
+
+### Fixed
+- Fixed real accounts showing `🐳 DeepSeek 数据异常`. DeepSeek returns signed balances (for example `topped_up_balance` of `"-0.23"` after granted credit is clawed back), and the old validator only accepted non-negative values, so a valid response was treated as malformed. Total, granted, and topped-up balances are now parsed and displayed with their original sign.
+- Validation stays strict: only an optional minus sign followed by up to 18 integer digits and 8 decimals is accepted; exponent notation, whitespace, Unicode minus signs, and repeated signs are still rejected, so unvalidated data is never rendered.
+- Added 2 tests covering signed balance parsing, footer/detail rendering of the real response shape, and malformed-format rejection; 30 offline tests in total.
+
 ## [0.1.3] - 2026-10-17
 
 ### Changed (rename migration)

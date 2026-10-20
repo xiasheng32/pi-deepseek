@@ -87,8 +87,11 @@ function fingerprint(value: string): string {
 }
 
 function decimal(value: unknown): string {
-	if (typeof value === "number" && Number.isFinite(value) && value >= 0) return String(value);
-	if (typeof value === "string" && /^\d{1,18}(?:\.\d{1,8})?$/.test(value)) return value;
+	// DeepSeek reports signed amounts: clawed-back grants can make topped_up_balance
+	// (and occasionally total_balance) negative, e.g. "-0.23". Rejecting the sign
+	// turned those real responses into "数据异常".
+	if (typeof value === "number" && Number.isFinite(value)) return String(value);
+	if (typeof value === "string" && /^-?\d{1,18}(?:\.\d{1,8})?$/.test(value)) return value;
 	throw new BalanceDataError();
 }
 
