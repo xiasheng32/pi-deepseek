@@ -6,7 +6,7 @@
 
 ## Features
 
-- **Persistent footer status:** displays `🐳 DeepSeek 余额：¥110.00`, with colors indicating account availability or missing credentials. The extension's UI labels remain in Chinese.
+- **Persistent footer status (DeepSeek only):** displays `🐳 DeepSeek 余额：¥110.00` while the active model belongs to the `deepseek` provider, with colors indicating account availability or missing credentials; the entry is hidden and polling stops when another provider is selected. The extension's UI labels remain in Chinese.
 - **`/pi-deepseek` command:** forces a refresh and opens a panel showing the total, granted, and topped-up balance for each currency, plus account status.
 - **Automatic refresh:** queries at session startup, polls every 60 seconds, and attempts a refresh after the agent settles with a 30-second throttle. Failures use exponential backoff; each request has a 10-second timeout.
 - **No hardcoded keys:** credentials come from pi's model registry. The repository contains no API keys.
@@ -73,14 +73,16 @@ pi install git:github.com/xiasheng32/pi-deepseek
 ## Usage
 
 - Start `pi` to see the DeepSeek balance in the footer.
-- Run `/pi-deepseek` to force a refresh and open the detail panel. Close it with `Enter`, `Esc`, or `q`. Scroll overflowing content with `↑` / `↓`; use `Home` / `End` to jump to the beginning or end.
+- The footer entry appears only while the active model belongs to the `deepseek` provider: Ctrl+P or `/model` to another provider clears it immediately and pauses background polling, and switching back restores it with an immediate refresh. If pi starts on a non-`deepseek` model, the balance is never queried.
+- Run `/pi-deepseek` to force a refresh and open the detail panel. Close it with `Enter`, `Esc`, or `q`. Scroll overflowing content with `↑` / `↓`; use `Home` / `End` to jump to the beginning or end. The command works on any provider but never brings the footer entry back.
 - Without credentials, the footer shows `🐳 DeepSeek 未配置` (not configured), and the command reports the missing configuration.
 
 ### Refresh policy and status
 
 The refresh policy follows `pi-codex`, but this package runs independently and does not depend on a neighboring project.
 
-- Interactive startup queries without blocking, then polls every 60 seconds and attempts a refresh on `agent_settled`. Automatic requests are at least 30 seconds apart.
+- Interactive startup queries without blocking, then polls every 60 seconds and attempts a refresh on `agent_settled`. Automatic requests are at least 30 seconds apart. Starting on a model outside the `deepseek` provider resolves no credentials, makes no network request, and shows no footer entry.
+- The footer entry and polling are DeepSeek-only: on `model_select` away from the provider the status entry is cleared, the 60-second poll stops, and the controller is disposed (in-flight request aborted, cached snapshot dropped); returning refreshes immediately once and resumes polling. Changing models inside the provider only repaints the status text and makes no extra request.
 - Only one refresh runs at a time; concurrent callers share the same Promise. Each request resolves credentials through pi again instead of caching the API key. Credential changes, HTTP 401/403, or logout clear old data.
 - Each request has a 10-second timeout. Automatic retries after a failed balance query back off from 60 seconds (60 → 120 → 240 seconds), capped at 5 minutes. HTTP 429 honors `Retry-After` in seconds or HTTP-date form; manual refresh cannot bypass this cooldown.
 - While refreshing, the footer shows `🐳 DeepSeek[更新中] 余额：…` in the accent color and keeps the previous value. Network or data errors retain the last successful value with `🐳 DeepSeek[过期] 余额：…` in the warning color. The panel warns that the stale cache does not represent the current balance. The stale marker takes precedence over the refreshing marker.
@@ -173,6 +175,7 @@ pi-deepseek/
 │   └── sync-autoload.ts         # explicitly generates a self-contained autoload copy
 ├── tests/
 │   ├── pi-deepseek.test.ts
+│   ├── extension.test.ts         # provider-gated footer wiring tests
 │   └── sync-autoload.test.ts    # synchronization tests in temporary directories
 ├── tsconfig.json                # strict type checking; no JavaScript output
 ├── package-lock.json            # locked development dependencies
@@ -187,7 +190,7 @@ pi-deepseek/
 
 ## Version history
 
-Current version **v0.1.3**. See [CHANGELOG.en.md](CHANGELOG.en.md) for the full history.
+Current version **v0.1.5**. See [CHANGELOG.en.md](CHANGELOG.en.md) for the full history.
 
 ## License
 

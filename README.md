@@ -6,7 +6,7 @@
 
 ## 功能特性
 
-- **页脚常驻状态**：显示 `🐳 DeepSeek 余额：¥110.00`，按可用性着色（可用 / 不可用 / 未配置）。
+- **页脚常驻状态（仅在 DeepSeek 下）**：当前模型属于 `deepseek` provider 时显示 `🐳 DeepSeek 余额：¥110.00`，按可用性着色（可用 / 不可用 / 未配置）；切到其他 provider 时自动隐藏并暂停轮询。
 - **`/pi-deepseek` 命令**：强制刷新并弹出详情面板，展示每个币种的**总余额、赠送余额、充值余额**与账户状态。
 - **自动刷新**：会话启动时查询，之后每 60 秒轮询并在每次 Agent 结束后按 30 秒节流刷新；失败按指数退避重试，单次请求 10 秒超时。
 - **无硬编码密钥**：凭据统一从 pi 的模型注册表读取，仓库中不含任何 key。
@@ -71,14 +71,16 @@ pi install git:github.com/xiasheng32/pi-deepseek
 ## 使用
 
 - 启动 `pi` 后，页脚会显示 DeepSeek 余额。
-- 输入 `/pi-deepseek` 强制刷新并打开详情面板，`Enter` / `Esc`（或 `q`）关闭；内容超出面板时用 `↑` / `↓` 滚动，`Home` / `End` 跳至首尾。
+- 页脚项只在当前模型属于 `deepseek` provider 时出现：用 Ctrl+P 或 `/model` 切到其他 provider 会立即清除该状态项并暂停后台轮询，切回 `deepseek` 时恢复并立刻刷新一次。若 pi 启动时的默认模型不是 `deepseek`，则完全不查询余额。
+- 输入 `/pi-deepseek` 强制刷新并打开详情面板，`Enter` / `Esc`（或 `q`）关闭；内容超出面板时用 `↑` / `↓` 滚动，`Home` / `End` 跳至首尾。该命令在任何 provider 下都可用，但不会把页脚状态加回来。
 - 未配置凭据时页脚显示 `🐳 DeepSeek 未配置`，`/pi-deepseek` 也会提示未配置。
 
 ### 刷新与状态
 
 刷新策略与 `pi-codex` 保持一致，但本包独立运行，不依赖相邻项目：
 
-- 交互式会话启动时非阻塞查询，之后每 60 秒轮询一次，并在 `agent_settled` 时尝试刷新；自动请求统一至少间隔 30 秒。
+- 交互式会话启动时非阻塞查询，之后每 60 秒轮询一次，并在 `agent_settled` 时尝试刷新；自动请求统一至少间隔 30 秒。若启动时的模型不属于 `deepseek` provider，则不解析凭据、不联网、不显示页脚项。
+- 页脚状态与轮询只在 `deepseek` provider 下生效：`model_select` 切到其他 provider 时清除状态项、停止 60 秒轮询并释放控制器（取消进行中的请求、丢弃缓存快照）；切回 `deepseek` 时立即强制刷新一次并恢复轮询。同一 provider 内换模型只重绘状态文案，不额外请求。
 - 一次仅有一个刷新请求（并发调用共享同一个 Promise）；每次重新通过 pi 解析凭据，不缓存 API Key。凭据变更、401/403 或退出登录会清空旧数据。
 - 单次请求 10 秒超时。额度失败后的自动重试从 60 秒起指数退避（60 → 120 → 240 秒），最高 5 分钟；429 会遵守 `Retry-After`（秒数或 HTTP 日期）进入冷却，手动刷新也不能绕过冷却。
 - 刷新中页脚显示 `🐳 DeepSeek[更新中] 余额：…`（保留上一次数值，accent 色）；网络/数据错误保留上次成功数据并以 `🐳 DeepSeek[过期] 余额：…` 标注（warning 色），详情顶部提示“以下为过期缓存，不代表当前余额。”。过期标注优先于更新中标注。
@@ -168,6 +170,7 @@ pi-deepseek/
 │   └── sync-autoload.ts         # 显式生成自包含副本；默认写入 autoload
 ├── tests/
 │   ├── pi-deepseek.test.ts
+│   ├── extension.test.ts         # 页脚随 provider 显示/隐藏的接线测试
 │   └── sync-autoload.test.ts    # 临时目录中的同步脚本测试
 ├── tsconfig.json                # 严格类型检查，不生成 JS
 ├── package-lock.json            # 仓库开发依赖锁定
@@ -182,7 +185,7 @@ pi-deepseek/
 
 ## 版本更新
 
-当前版本 **v0.1.3**。完整更新记录见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本 **v0.1.5**。完整更新记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可
 

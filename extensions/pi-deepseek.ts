@@ -5,6 +5,8 @@
  * footer status line, `/pi-deepseek` command and a live detail panel.
  *
  * - Status: ctx.ui.setStatus("pi-deepseek", "🐳 DeepSeek 余额：¥110.00")
+ *   Only while the active model belongs to the `deepseek` provider; switching away
+ *   clears the status and disposes the controller, switching back restarts it.
  * - Refresh: session start (immediate) + 60s poll + agent_settled (30s throttle)
  * - API: GET https://api.deepseek.com/user/balance (Bearer auth)
  *
@@ -91,9 +93,26 @@ export default function piDeepseek(pi: ExtensionAPI): void {
 	// State is factory-local: reloads and different sessions cannot share requests.
 	let controller: BalanceController | null = null;
 	let timer: ReturnType<typeof setInterval> | undefined;
+	// Offline mode intentionally runs no timer, so a timer alone cannot say whether
+	// balance tracking is active; `started` covers both cases.
+	let started = false;
+
+	/** The footer entry belongs to the DeepSeek provider only. */
+	function isActive(ctx: ExtensionContext): boolean {
+		return ctx.model?.provider === PROVIDER;
+	}
+
+	function clearStatus(ctx: ExtensionContext): void {
+		if (ctx.mode === "tui" && ctx.hasUI) ctx.ui.setStatus(STATUS_KEY, undefined);
+	}
 
 	function updateStatus(ctx: ExtensionContext, state: BalanceState): void {
 		if (ctx.mode !== "tui" || !ctx.hasUI) return;
+		if (!isActive(ctx)) {
+			// Late callbacks and `/pi-deepseek` must not resurrect the footer elsewhere.
+			ctx.ui.setStatus(STATUS_KEY, undefined);
+			return;
+		}
 		const status = statusLine(state, Date.now());
 		ctx.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg(status.color, status.text));
 	}
@@ -111,30 +130,49 @@ export default function piDeepseek(pi: ExtensionAPI): void {
 	}
 
 	function stop(ctx: ExtensionContext): void {
+		started = false;
 		if (timer !== undefined) clearInterval(timer);
 		timer = undefined;
 		controller?.dispose();
 		controller = null;
-		if (ctx.mode === "tui" && ctx.hasUI) ctx.ui.setStatus(STATUS_KEY, undefined);
+		clearStatus(ctx);
+	}
+
+	function start(ctx: ExtensionContext): void {
+		if (ctx.mode !== "tui" || !ctx.hasUI || !isActive(ctx)) return;
+		started = true;
+		const instance = getController(ctx);
+		updateStatus(ctx, instance.getState());
+		void instance.refresh(true);
+		if (isOffline(process.env.PI_OFFLINE)) return;
+		timer = setInterval(() => {
+			void instance.refresh();
+			if (controller === instance) updateStatus(ctx, instance.getState());
+		}, POLL_MS);
+		timer.unref();
 	}
 
 	pi.on("session_start", (_event, ctx) => {
 		stop(ctx);
+		start(ctx);
+	});
+
+	pi.on("model_select", (_event, ctx) => {
 		if (ctx.mode !== "tui" || !ctx.hasUI) return;
-		const instance = getController(ctx);
-		updateStatus(ctx, instance.getState());
-		void instance.refresh(true);
-		if (!isOffline(process.env.PI_OFFLINE)) {
-			timer = setInterval(() => {
-				void instance.refresh();
-				if (controller === instance) updateStatus(ctx, instance.getState());
-			}, POLL_MS);
-			timer.unref();
+		if (!isActive(ctx)) {
+			stop(ctx);
+			return;
 		}
+		if (!started) {
+			start(ctx); // First arrival on deepseek: status, fresh snapshot, polling.
+			return;
+		}
+		// Same provider, different model: only the themed status text needs repainting.
+		if (controller) updateStatus(ctx, controller.getState());
 	});
 
 	pi.on("agent_settled", (_event, ctx) => {
-		if (ctx.mode !== "tui" || !controller) return;
+		if (ctx.mode !== "tui" || !controller || !isActive(ctx)) return;
 		void controller.refresh();
 		updateStatus(ctx, controller.getState());
 	});

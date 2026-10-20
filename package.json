@@ -1,6 +1,6 @@
 {
   "name": "pi-deepseek",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Pi extension: 在页脚状态栏显示 DeepSeek 账户余额，并提供 /pi-deepseek 详情面板命令。",
   "keywords": [
     "pi-package",
@@ -26,6 +26,7 @@
     "src/balance.ts",
     "scripts/sync-autoload.ts",
     "tests/pi-deepseek.test.ts",
+    "tests/extension.test.ts",
     "tests/sync-autoload.test.ts",
     "tsconfig.json",
     ".env.example",
@@ -41,7 +42,7 @@
     ]
   },
   "scripts": {
-    "test": "node --test tests/pi-deepseek.test.ts tests/sync-autoload.test.ts",
+    "test": "node --test tests/pi-deepseek.test.ts tests/extension.test.ts tests/sync-autoload.test.ts",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm test",
     "sync-autoload": "node scripts/sync-autoload.ts"

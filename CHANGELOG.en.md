@@ -3,6 +3,18 @@
 All notable changes to this project are documented in this file.
 Versions follow [Semantic Versioning](https://semver.org/); dates are release dates.
 
+## [0.1.5] - 2026-10-21
+
+### Added
+- The footer balance status now appears only while the active model belongs to the `deepseek` provider: after Ctrl+P or `/model` switches to another provider, the `pi-deepseek` status entry is cleared instead of leaving a stale balance from the previous provider.
+- Leaving the provider also pauses the 60-second poll and disposes the controller (aborting the in-flight request and dropping the cached snapshot); returning to `deepseek` refreshes immediately once and resumes polling. Starting on a non-`deepseek` model resolves no credentials, makes no network request, and shows no footer entry.
+- `/pi-deepseek` still works on any provider: it forces a refresh and opens the detail panel as before, but never writes the footer status.
+- Added `tests/extension.test.ts` wiring tests (`node:test` with mock timers) covering hide-on-switch, restore-on-switch-back, no polling while hidden, zero requests when starting on another provider, a usable command that keeps the footer hidden, and cached reuse for same-provider model changes; 36 offline tests in total.
+
+### Changed
+- `agent_settled` no longer triggers a refresh when the active provider is not `deepseek`.
+- Non-TUI and offline behavior are unchanged.
+
 ## [0.1.4] - 2026-10-21
 
 ### Fixed

@@ -2,6 +2,18 @@
 
 本项目所有显著变更都记录在此文件中。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，日期为发布日期。
 
+## [0.1.5] - 2026-10-21
+
+### 新增
+- 页脚余额状态改为仅在当前模型属于 `deepseek` provider 时显示：用 Ctrl+P 或 `/model` 切到其他 provider 后，`pi-deepseek` 状态项立即清除，不再残留上一个 provider 的余额。
+- 切到其他 provider 时同时暂停 60 秒轮询并释放控制器（取消进行中的请求、丢弃缓存快照）；切回 `deepseek` 时立即刷新一次并恢复轮询。若启动时的默认模型不是 `deepseek`，则不会解析凭据、不会联网、也不会显示页脚项。
+- `/pi-deepseek` 仍可在任意 provider 下使用：照常强制刷新并打开详情面板，但不会再往页脚写状态。
+- 新增 `tests/extension.test.ts` 接线测试（`node:test` + mock timers），覆盖切换后隐藏、切回后恢复、隐藏期间不再轮询、跨 provider 启动零请求、命令可用但页脚保持隐藏，以及同 provider 换模型复用缓存；离线测试共 36 项。
+
+### 变更
+- `agent_settled` 在非 `deepseek` provider 下不再触发刷新。
+- 非 TUI 模式与离线模式行为不变。
+
 ## [0.1.4] - 2026-10-21
 
 ### 修复
