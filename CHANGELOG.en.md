@@ -3,11 +3,11 @@
 All notable changes to this project are documented in this file.
 Versions follow [Semantic Versioning](https://semver.org/); dates are release dates.
 
-## [Unreleased]
+## [0.2.0] - 2026-10-21
 
 ### Fixed
 - Changed the package entry to `extensions/index.ts` so the startup `[Extensions]` compact list shows the GitHub package as `xiasheng32/pi-deepseek` without `:pi-deepseek.ts`, matching pi-codex.
-- Updated the manifest, synchronization script, tests, and bilingual documentation; added regression assertions for the manifest and single entry. Standalone autoload output remains `pi-deepseek.ts`; balance UI and refresh behavior are unchanged.
+- Updated the manifest, synchronization script, tests, and bilingual documentation; added regression assertions for the manifest and single entry, for 37 offline tests in total. Standalone autoload output remains `pi-deepseek.ts`; v0.1.5 provider-switch behavior is preserved, and the balance UI and refresh policy are unchanged.
 
 ## [0.1.5] - 2026-10-21
 

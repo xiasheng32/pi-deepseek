@@ -154,7 +154,7 @@ pi --offline -ne -e .
 
 ```bash
 npm pack --offline --ignore-scripts --pack-destination ..
-# 上一级目录生成 pi-deepseek-0.1.3.tgz，不安装插件、不发布 npm
+# 上一级目录生成 pi-deepseek-0.2.0.tgz，不安装插件、不发布 npm
 ```
 
 上传 GitHub 时使用本项目目录的内容，让 `package.json` 位于仓库根目录；不要把整个父目录、`.tgz`、凭据或本机配置上传。源码、测试、README、许可证、空值 `.env.example` 和 `.gitignore` 均可保留。包清单使用精确文件白名单，不需要 `node_modules/`；压缩包解开后也可直接运行 `npm test` 和 `pi -ne -e .`。
@@ -187,7 +187,7 @@ pi-deepseek/
 
 ## 版本更新
 
-当前版本 **v0.1.5**。完整更新记录见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本 **v0.2.0**。完整更新记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可
 

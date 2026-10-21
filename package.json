@@ -1,6 +1,6 @@
 {
   "name": "pi-deepseek",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Pi extension: 在页脚状态栏显示 DeepSeek 账户余额，并提供 /pi-deepseek 详情面板命令。",
   "keywords": [
     "pi-package",

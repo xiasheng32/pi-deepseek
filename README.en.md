@@ -158,7 +158,7 @@ Run from the project root:
 
 ```bash
 npm pack --offline --ignore-scripts --pack-destination ..
-# Creates pi-deepseek-0.1.3.tgz in the parent directory;
+# Creates pi-deepseek-0.2.0.tgz in the parent directory;
 # does not install the extension or publish to npm
 ```
 
@@ -192,7 +192,7 @@ pi-deepseek/
 
 ## Version history
 
-Current version **v0.1.5**. See [CHANGELOG.en.md](CHANGELOG.en.md) for the full history.
+Current version **v0.2.0**. See [CHANGELOG.en.md](CHANGELOG.en.md) for the full history.
 
 ## License
 

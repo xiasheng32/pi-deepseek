@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TestContext } from "node:test";
-import piDeepseek from "../extensions/pi-deepseek.ts";
+import piDeepseek from "../extensions/index.ts";
 
 // Wiring tests for the extension entry: the footer status is DeepSeek-only, and
 // leaving the provider must stop the network and payload work as well.
