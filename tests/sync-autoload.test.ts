@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -11,7 +11,7 @@ const script = join(root, "scripts/sync-autoload.ts");
 
 async function expectedBundle(): Promise<string> {
 	const source = await readFile(join(root, "src/balance.ts"), "utf8");
-	const entry = await readFile(join(root, "extensions/pi-deepseek.ts"), "utf8");
+	const entry = await readFile(join(root, "extensions/index.ts"), "utf8");
 	const body = entry.replace(/^import .* from "\.\.\/src\/balance\.ts";\n/gm, "");
 	const split = body.indexOf('const STATUS_KEY = "pi-deepseek";');
 	assert.ok(split >= 0);
@@ -31,6 +31,17 @@ function runScript(home: string, args: string[]): string {
 	assert.equal(result.status, 0, result.stderr);
 	return result.stdout;
 }
+
+test("package exposes only extensions/index.ts for the compact plugin label", async () => {
+	const manifest = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+	assert.deepEqual(manifest.pi.extensions, ["./extensions/index.ts"]);
+	assert.deepEqual(manifest.files.filter((file: string) => file.startsWith("extensions/")), ["extensions/index.ts"]);
+	const entries = await readdir(join(root, "extensions"), { withFileTypes: true });
+	assert.deepEqual(
+		entries.filter((entry) => entry.isFile() && /\.(?:ts|js)$/.test(entry.name)).map((entry) => entry.name).sort(),
+		["index.ts"],
+	);
+});
 
 test("TS sync script generates an exact self-contained bundle at an explicit nested destination", async () => {
 	const home = await mkdtemp(join(tmpdir(), "pi-deepseek-sync-"));

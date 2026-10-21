@@ -42,9 +42,11 @@ pi install git:github.com/xiasheng32/pi-deepseek
 pi update git:github.com/xiasheng32/pi-deepseek  # Update an existing installation
 ```
 
+For GitHub package installations, the startup `[Extensions]` compact list shows `xiasheng32/pi-deepseek` without the entry filename, matching pi-codex. The package entry is `extensions/index.ts`; standalone autoload copies keep the `pi-deepseek.ts` filename.
+
 ### Option 3: Generate a standalone autoload file
 
-`extensions/pi-deepseek.ts` depends on `../src/balance.ts` and cannot be copied on its own. Explicitly generate a self-contained file from the project root:
+`extensions/index.ts` depends on `../src/balance.ts` and cannot be copied on its own. Explicitly generate a self-contained file from the project root:
 
 ```bash
 npm run sync-autoload
@@ -148,7 +150,7 @@ pi --offline -ne -e .
 
 The help command alone cannot prove that the extension loaded successfully. In an offline interactive trial, expect `🐳 DeepSeek 离线` (offline); `/pi-deepseek` should not query credentials or balances. Do not use `-p "ok"` for an offline check because it invokes a model.
 
-After editing `src/balance.ts` or `extensions/pi-deepseek.ts`, package installations only need `/reload`. Standalone deployments require an explicit `npm run sync-autoload`.
+After editing `src/balance.ts` or `extensions/index.ts`, package installations only need `/reload`. Standalone deployments require an explicit `npm run sync-autoload`.
 
 ### Local packaging and GitHub uploads
 
@@ -168,7 +170,7 @@ Upload this project's contents with `package.json` at the repository root. Do no
 pi-deepseek/
 ├── package.json                 # pi package manifest (keyword: pi-package)
 ├── extensions/
-│   └── pi-deepseek.ts      # pi events, command, and detail panel
+│   └── index.ts                 # pi events, command, and detail panel
 ├── src/
 │   └── balance.ts               # refresh policy and status text; no external dependencies
 ├── scripts/

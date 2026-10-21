@@ -2,6 +2,12 @@
 
 本项目所有显著变更都记录在此文件中。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，日期为发布日期。
 
+## [未发布]
+
+### 修复
+- 包入口改为 `extensions/index.ts`，使 GitHub 包在启动页 `[Extensions]` 紧凑列表显示为 `xiasheng32/pi-deepseek`，不再附加 `:pi-deepseek.ts`，与 pi-codex 一致。
+- 同步包清单、生成脚本、测试与双语文档；新增入口清单及唯一入口回归断言。独立 autoload 输出仍为 `pi-deepseek.ts`，余额界面与刷新行为不变。
+
 ## [0.1.5] - 2026-10-21
 
 ### 新增

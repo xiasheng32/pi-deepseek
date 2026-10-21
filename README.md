@@ -41,9 +41,11 @@ pi install git:github.com/xiasheng32/pi-deepseek
 pi update git:github.com/xiasheng32/pi-deepseek  # 已安装时更新
 ```
 
+通过 GitHub 包安装时，启动页 `[Extensions]` 紧凑列表显示 `xiasheng32/pi-deepseek`，不附加入口文件名，与 pi-codex 一致。包入口为 `extensions/index.ts`；独立 autoload 副本仍使用 `pi-deepseek.ts` 文件名。
+
 ### 方式三：手动放置到 autoload 目录
 
-`extensions/pi-deepseek.ts` 依赖相对的 `../src/balance.ts`，不能直接复制。请在项目根目录显式生成自包含文件：
+`extensions/index.ts` 依赖相对的 `../src/balance.ts`，不能直接复制。请在项目根目录显式生成自包含文件：
 
 ```bash
 npm run sync-autoload
@@ -144,7 +146,7 @@ pi --offline -ne -e .
 
 帮助命令不能单独证明扩展加载成功。离线试用时应看到 `🐳 DeepSeek 离线`，`/pi-deepseek` 也不会查询凭据或余额。不要用 `-p "ok"` 做离线检查，它会调用模型。
 
-修改 `src/balance.ts` 或 `extensions/pi-deepseek.ts` 后，包方式加载只需 `/reload`；单文件部署才需要显式运行 `npm run sync-autoload`。
+修改 `src/balance.ts` 或 `extensions/index.ts` 后，包方式加载只需 `/reload`；单文件部署才需要显式运行 `npm run sync-autoload`。
 
 ### 本地打包与上传 GitHub
 
@@ -163,7 +165,7 @@ npm pack --offline --ignore-scripts --pack-destination ..
 pi-deepseek/
 ├── package.json                 # pi 包清单（keywords: pi-package）
 ├── extensions/
-│   └── pi-deepseek.ts      # pi 接线：事件、命令、详情面板
+│   └── index.ts                 # pi 接线：事件、命令、详情面板
 ├── src/
 │   └── balance.ts               # 纯逻辑：刷新策略与状态文案（零外部依赖）
 ├── scripts/

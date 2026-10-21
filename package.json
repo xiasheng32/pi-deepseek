@@ -22,7 +22,7 @@
     "node": ">=22.19.0"
   },
   "files": [
-    "extensions/pi-deepseek.ts",
+    "extensions/index.ts",
     "src/balance.ts",
     "scripts/sync-autoload.ts",
     "tests/pi-deepseek.test.ts",
@@ -38,7 +38,7 @@
   ],
   "pi": {
     "extensions": [
-      "./extensions/pi-deepseek.ts"
+      "./extensions/index.ts"
     ]
   },
   "scripts": {
